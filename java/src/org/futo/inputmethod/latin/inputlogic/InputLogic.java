@@ -1076,7 +1076,7 @@ public final class InputLogic {
 
         if(codePoint == Constants.CODE_ENTER
                 && (inputTransaction.mSettingsValues.mInputAttributes.mSendKeyEventsMode
-                    || inputTransaction.mSettingsValues.mInputAttributes.mSendEditingKeysAsKeyEvents)
+                    || inputTransaction.mSettingsValues.mInputAttributes.mSendEnterAsKeyEvent)
         ) {
             sendDownUpKeyEvent(KeyEvent.KEYCODE_ENTER, 0);
             return;
@@ -1563,7 +1563,7 @@ public final class InputLogic {
                 // There is no selection, just delete one character.
                 if (inputTransaction.mSettingsValues.isBeforeJellyBean()
                         || inputTransaction.mSettingsValues.mInputAttributes.isTypeNull()
-                        || inputTransaction.mSettingsValues.mInputAttributes.mSendEditingKeysAsKeyEvents
+                        || inputTransaction.mSettingsValues.mInputAttributes.mSendBackspaceAsKeyEvent
                         || Constants.NOT_A_CURSOR_POSITION
                                 == mConnection.getExpectedSelectionEnd()) {
                     // There are four possible reasons to send a key event: either the field has

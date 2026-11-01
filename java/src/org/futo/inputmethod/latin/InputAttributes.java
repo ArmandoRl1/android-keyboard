@@ -65,11 +65,17 @@ public final class InputAttributes {
     final public boolean mDisableGestureFloatingPreviewText;
     final public boolean mSendKeyEventsMode;
     /**
-     * Whether backspace and enter should be sent as key events even though the field is a regular
-     * text field. Terminals built on a hidden textarea (xterm.js) only react reliably to real key
-     * events; edits made through the InputConnection may never reach the terminal.
+     * Whether backspace should be sent as a key event even though the field is a regular text
+     * field. Terminals usually type into a hidden input that they clear or never read back, and
+     * only react to a real KEYCODE_DEL. Deleting through the InputConnection would silently
+     * remove text the terminal has already consumed (or that no longer exists).
      */
-    final public boolean mSendEditingKeysAsKeyEvents;
+    final public boolean mSendBackspaceAsKeyEvent;
+    /**
+     * Whether enter should be sent as a key event. Web terminals (xterm.js) translate the key
+     * event to CR and clear their hidden textarea, which a committed newline does not do.
+     */
+    final public boolean mSendEnterAsKeyEvent;
     final public boolean mIsGeneralTextInput;
     final public boolean mIsWebField;
     final public boolean mNoLearning;
@@ -116,14 +122,16 @@ public final class InputAttributes {
             mNoLearning = false;
             mIsEmailField = false;
             mSendKeyEventsMode = true;
-            mSendEditingKeysAsKeyEvents = false;
+            mSendBackspaceAsKeyEvent = false;
+            mSendEnterAsKeyEvent = false;
             mIsWebField = false;
             mLocaleOverride = null;
             mLayoutOverride = null;
             return;
         }
         mSendKeyEventsMode = false;
-        mSendEditingKeysAsKeyEvents = codeFieldType == CODE_FIELD_NO_COMPOSITION;
+        mSendEnterAsKeyEvent = codeFieldType == CODE_FIELD_NO_COMPOSITION;
+        mSendBackspaceAsKeyEvent = mSendEnterAsKeyEvent || isNativeTerminalField(editorInfo);
         // inputClass == InputType.TYPE_CLASS_TEXT
         final int variation = inputType & InputType.TYPE_MASK_VARIATION;
         final boolean flagNoSuggestions =
@@ -406,6 +414,20 @@ public final class InputAttributes {
             return CODE_FIELD_NO_COMPOSITION;
 
         return NOT_A_CODE_FIELD;
+    }
+
+    /**
+     * Detects terminals built on a native hidden EditText (e.g. the T3 Code app). Terminal apps
+     * commonly use VISIBLE_PASSWORD + NO_SUGGESTIONS to stop keyboards from suggesting or
+     * correcting, and handle backspace only as KEYCODE_DEL because they clear the field after
+     * every character. Sending KEYCODE_DEL is harmless in regular visible password fields too.
+     */
+    private static boolean isNativeTerminalField(final EditorInfo editorInfo) {
+        final int inputType = editorInfo.inputType;
+        return (inputType & InputType.TYPE_MASK_CLASS) == InputType.TYPE_CLASS_TEXT
+                && (inputType & InputType.TYPE_MASK_VARIATION)
+                        == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                && (inputType & InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS) != 0;
     }
 
     /**

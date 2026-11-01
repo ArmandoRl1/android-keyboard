@@ -2,6 +2,7 @@
 >
 > Changes in this fork:
 > - Web terminals (xterm.js, e.g. in browser IDEs and cloud consoles) are detected in any app or browser: word composition is disabled there and backspace/enter are sent as real key events, so backspace deletes immediately.
+> - Native terminals that hide their input in a VISIBLE_PASSWORD + NO_SUGGESTIONS field (e.g. the T3 Code app) get backspace as a real key event, so it no longer takes several presses to start deleting.
 
 # FUTO Keyboard
 
