@@ -1075,7 +1075,8 @@ public final class InputLogic {
         }
 
         if(codePoint == Constants.CODE_ENTER
-                && inputTransaction.mSettingsValues.mInputAttributes.mSendKeyEventsMode
+                && (inputTransaction.mSettingsValues.mInputAttributes.mSendKeyEventsMode
+                    || inputTransaction.mSettingsValues.mInputAttributes.mSendEditingKeysAsKeyEvents)
         ) {
             sendDownUpKeyEvent(KeyEvent.KEYCODE_ENTER, 0);
             return;
@@ -1562,10 +1563,12 @@ public final class InputLogic {
                 // There is no selection, just delete one character.
                 if (inputTransaction.mSettingsValues.isBeforeJellyBean()
                         || inputTransaction.mSettingsValues.mInputAttributes.isTypeNull()
+                        || inputTransaction.mSettingsValues.mInputAttributes.mSendEditingKeysAsKeyEvents
                         || Constants.NOT_A_CURSOR_POSITION
                                 == mConnection.getExpectedSelectionEnd()) {
-                    // There are three possible reasons to send a key event: either the field has
-                    // type TYPE_NULL, in which case the keyboard should send events, or we are
+                    // There are four possible reasons to send a key event: either the field has
+                    // type TYPE_NULL, in which case the keyboard should send events, or it's a
+                    // terminal that only reacts to key events (see InputAttributes), or we are
                     // running in backward compatibility mode, or we don't know the cursor position.
                     // Before Jelly bean, the keyboard would simulate a hardware keyboard event on
                     // pressing enter or delete. This is bad for many reasons (there are race

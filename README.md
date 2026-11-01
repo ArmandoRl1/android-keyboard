@@ -1,3 +1,8 @@
+> **Modified version.** This is a personal, non-commercial fork of [FUTO Keyboard](https://github.com/futo-org/android-keyboard) maintained by ArmandoRl1. It contains changes that are not part of the official app and is distributed free of charge under the unchanged [FUTO Source First License 1.1](LICENSE.md). Please report issues with this fork here, not to FUTO.
+>
+> Changes in this fork:
+> - Web terminals (xterm.js, e.g. in browser IDEs and cloud consoles) are detected in any app or browser: word composition is disabled there and backspace/enter are sent as real key events, so backspace deletes immediately.
+
 # FUTO Keyboard
 
 The goal is to make a good modern keyboard that stays offline and doesn't spy on you. This keyboard is a fork of [LatinIME, The Android Open-Source Keyboard](https://android.googlesource.com/platform/packages/inputmethods/LatinIME), with significant changes made to it.

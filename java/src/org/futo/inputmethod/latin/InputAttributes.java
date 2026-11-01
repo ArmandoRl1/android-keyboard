@@ -64,6 +64,12 @@ public final class InputAttributes {
      */
     final public boolean mDisableGestureFloatingPreviewText;
     final public boolean mSendKeyEventsMode;
+    /**
+     * Whether backspace and enter should be sent as key events even though the field is a regular
+     * text field. Terminals built on a hidden textarea (xterm.js) only react reliably to real key
+     * events; edits made through the InputConnection may never reach the terminal.
+     */
+    final public boolean mSendEditingKeysAsKeyEvents;
     final public boolean mIsGeneralTextInput;
     final public boolean mIsWebField;
     final public boolean mNoLearning;
@@ -110,12 +116,14 @@ public final class InputAttributes {
             mNoLearning = false;
             mIsEmailField = false;
             mSendKeyEventsMode = true;
+            mSendEditingKeysAsKeyEvents = false;
             mIsWebField = false;
             mLocaleOverride = null;
             mLayoutOverride = null;
             return;
         }
         mSendKeyEventsMode = false;
+        mSendEditingKeysAsKeyEvents = codeFieldType == CODE_FIELD_NO_COMPOSITION;
         // inputClass == InputType.TYPE_CLASS_TEXT
         final int variation = inputType & InputType.TYPE_MASK_VARIATION;
         final boolean flagNoSuggestions =
@@ -394,6 +402,30 @@ public final class InputAttributes {
         if(editorInfo.packageName.startsWith("com.android.virtualization.terminal") && noSuggestions)
             return CODE_FIELD_NO_COMPOSITION;
 
+        if(isWebTerminalField(editorInfo))
+            return CODE_FIELD_NO_COMPOSITION;
+
         return NOT_A_CODE_FIELD;
+    }
+
+    /**
+     * Detects web terminals such as xterm.js (used by VS Code-like web IDEs, Jupyter, cloud
+     * consoles, etc.) in any browser or WebView. They type into a hidden textarea with
+     * autocorrect="off" and autocapitalize="off", which Chromium reports as a multi-line web
+     * field without AUTO_CORRECT and without any CAP_* flag. Regular textareas autocapitalize
+     * sentences by default, so they don't match.
+     */
+    private static boolean isWebTerminalField(final EditorInfo editorInfo) {
+        final int inputType = editorInfo.inputType;
+        final int variation = inputType & InputType.TYPE_MASK_VARIATION;
+        final int capFlags = InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+                | InputType.TYPE_TEXT_FLAG_CAP_WORDS
+                | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES;
+
+        return (inputType & InputType.TYPE_MASK_CLASS) == InputType.TYPE_CLASS_TEXT
+                && variation == InputType.TYPE_TEXT_VARIATION_WEB_EDIT_TEXT
+                && (inputType & InputType.TYPE_TEXT_FLAG_MULTI_LINE) != 0
+                && (inputType & InputType.TYPE_TEXT_FLAG_AUTO_CORRECT) == 0
+                && (inputType & capFlags) == 0;
     }
 }
